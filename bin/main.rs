@@ -2,6 +2,7 @@
 #![plugin(rocket_codegen)]
 #![feature(custom_derive, test)]
 #![allow(unknown_lints)]
+
 extern crate diesel;
 extern crate games_microservice;
 
@@ -9,19 +10,18 @@ extern crate games_microservice;
 #[macro_use]
 extern crate serde_derive;
 
-
 #[cfg(feature = "web")]
 extern crate rocket;
-
 #[cfg(feature = "web")]
 extern crate rocket_contrib;
 
-use self::games_microservice::{api, establish_connection_pool, ConnectionPool};
-
 mod endpoints;
 
+use games_microservice::{api, establish_connection_pool, ConnectionPool};
+use rocket::Rocket;
+
 #[cfg(feature = "web")]
-pub fn create_rocket() -> rocket::Rocket {
+pub fn create_rocket() -> Rocket {
     endpoints::router(rocket::ignite().manage(establish_connection_pool()))
 }
 

@@ -21,5 +21,6 @@ pub fn router(rocket: Rocket) -> Rocket {
         .mount("/coin_toss", routes![coin_toss::coin_toss])
         .mount("/rps", routes![rps::rps])
 }
+
 #[cfg(test)]
 mod test;
