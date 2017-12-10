@@ -1,6 +1,6 @@
 use api::blackjack::Card;
 
-#[derive(Default)]
+#[derive(Clone, Debug, Default)]
 pub struct Hand {
     pub cards: Vec<Card>,
 }
@@ -32,11 +32,14 @@ impl Hand {
             } else {
                 total += 1
             };
+
             ace_count -= 1;
         };
-        for _ace in 0u8..ace_count {
+
+        for _ in 0u8..ace_count {
             total += 1
         }
+
         total
     }
     pub fn export(&self) -> (u64, Vec<String>) {

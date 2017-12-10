@@ -1,9 +1,9 @@
-use api::blackjack::Card;
-use api::blackjack::DECK_OF_CARDS;
+use api::blackjack::{DECK_OF_CARDS, Card};
+
 #[cfg(not(any(test, bench)))]
 use rand::{thread_rng, Rng};
 
-#[derive(Default)]
+#[derive(Clone, Debug, Default)]
 pub struct Deck {
     pub cards: Vec<Card>,
 }
@@ -12,8 +12,12 @@ impl Deck {
     #[allow(unused_mut)]
     pub fn new() -> Self {
         let mut cards = DECK_OF_CARDS.clone();
+
         #[cfg(not(test))]
-        thread_rng().shuffle(&mut cards);
+        {
+            thread_rng().shuffle(&mut cards);
+        }
+
         Self {
             cards: cards.to_vec(),
         }
@@ -24,13 +28,16 @@ impl Deck {
         #[cfg(not(test))]
         {
             let i = thread_rng().gen_range(0, self.cards.len());
+
             self.cards.remove(i)
         }
+
         #[cfg(test)]
         {
             self.cards.pop().unwrap()
         }
     }
+
     pub fn export(&self) -> Vec<String> {
         c![card.to_string(), for card in &self.cards]
     }

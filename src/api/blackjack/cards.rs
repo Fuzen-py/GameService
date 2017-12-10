@@ -4,13 +4,12 @@ use std::fmt;
 use std::str::FromStr;
 use std::char::ParseCharError;
 
-#[derive(Debug, Clone)]
+#[derive(Clone, Debug)]
 pub struct Card {
     pub name: &'static str,
     pub value: u8,
     pub symbol: &'static str,
 }
-
 
 const NON_ROYALTY_CARDS: [&str; 10] = [
     "ACE",
@@ -31,12 +30,15 @@ const ROYALTY_CARDS: [&str; 3] = ["JACKS", "KINGS", "QUEENS"];
 
 impl FromStr for Card {
     type Err = ParseCharError;
+
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         lazy_static!{
             static ref RE: Regex = Regex::new(r"(.*):(.*)").unwrap();
         }
+
         let data = RE.captures_iter(s).next().unwrap();
         let symbol_pos = VALID_SYMBOLS.iter().position(|&r| r == &data[1]).unwrap();
+
         Ok(
             match NON_ROYALTY_CARDS.iter().position(|&r| r == &data[2]) {
                 Some(position) => Card {

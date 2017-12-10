@@ -1,4 +1,5 @@
 use api::blackjack::Card;
+
 pub const DECK_OF_CARDS: [Card; 52] = [
     Card {
         name: "ACE",

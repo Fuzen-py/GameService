@@ -1,27 +1,27 @@
 use ConnectionPool;
 use api::blackjack::{Deck, Hand, Session};
-
 use diesel::prelude::*;
 use diesel;
 
-#[derive(PartialEq)]
+#[derive(Clone, Debug, Eq, Hash, PartialEq, PartialOrd, Ord)]
 pub enum GameState {
     InProgress,
     PlayerWon,
     PlayerLost,
 }
 
-
 // TODO: Implement Surrender
 // TODO: Implement Insurrence
 
+#[derive(Clone)]
 pub struct BlackJack {
     pub player: Hand,
     pub player_id: u64,
     pub dealer: Hand,
     deck: Deck,
     pub bet: u64,
-    pub first_turn: bool, // Used for responses
+    // Used for responses
+    pub first_turn: bool,
     pub player_stay_status: bool,
     pub dealer_stay_status: bool,
     pub gain: i64,
@@ -29,12 +29,12 @@ pub struct BlackJack {
     claimed: bool,
 }
 
-
 impl BlackJack {
     #[allow(needless_pass_by_value)]
     pub fn new(player_id: u64, new_bet: u64, db_pool: ConnectionPool) -> Option<Self> {
-        use schema::blackjack as blackjack_schema;
         use schema::blackjack::dsl::*;
+        use schema::blackjack as blackjack_schema;
+
         // TODO: Make this safer (low)
         let conn = db_pool.clone().get().unwrap();
         let num: i64 = blackjack
@@ -43,9 +43,11 @@ impl BlackJack {
             .get_result(&*conn)
             // TODO: Make this safer
             .unwrap_or_default();
+
         if num != 0 {
             return None;
         }
+
         let mut new_deck = Deck::new();
         let mut player = Hand::new();
         let mut dealer = Hand::new();
@@ -53,12 +55,14 @@ impl BlackJack {
         player.add_card(new_deck.draw());
         dealer.add_card(new_deck.draw());
         dealer.add_card(new_deck.draw());
+
         let num: i64 = blackjack
             .filter(id.eq(player_id as i64))
             .count()
             .get_result(&*conn)
             // TODO: Make this safer
             .unwrap_or_default();
+
         if num == 0 {
             let sess = Session {
                 id: player_id as i64,
@@ -71,11 +75,13 @@ impl BlackJack {
                 player_stay: false,
                 status: None,
             };
+
             let _: Session = diesel::insert_into(blackjack_schema::table)
                 .values(&sess)
                 .get_result(&*conn)
                 .expect("Error saving sessions");
         }
+
         Some(Self {
             player_id: player_id,
             player: player,
@@ -210,21 +216,27 @@ impl BlackJack {
         if !self.player_stay_status {
             return Err("Player is not done yet");
         }
+
         self.first_turn = false;
+
         while self.status() == GameState::InProgress && self.dealer.score() < 17 {
             self.dealer_hit()?; // No errors should happen here
         }
+
         self.dealer_stay();
+
         Ok(())
     }
 
     pub fn save(&self) {
         let conn = self.db_pool.clone().get().unwrap();
+
         let (game_status, bet): (Option<bool>, Option<i64>) = match self.status() {
             GameState::InProgress => (None, Some(self.bet as i64)),
             GameState::PlayerWon => (Some(true), None),
             GameState::PlayerLost => (Some(false), None),
         };
+
         let sess = Session {
             id: self.player_id as i64,
             bet: bet,
@@ -236,6 +248,7 @@ impl BlackJack {
             player_stay: self.player_stay_status,
             status: game_status,
         };
+
         // TODO: make this safe
         let _: Session = sess.save_changes(&*conn).unwrap();
     }

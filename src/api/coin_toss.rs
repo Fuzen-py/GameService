@@ -2,7 +2,7 @@ use rand::{thread_rng, Rng};
 
 const WEIGHT: u32 = 2;
 
-#[derive(Serialize, Deserialize, PartialEq)]
+#[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, PartialOrd, Ord, Serialize)]
 pub enum Coin {
     Heads,
     Tails,
@@ -19,7 +19,7 @@ impl Coin {
     }
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct CoinTossResult {
     player: Coin,
     computer: Coin,
@@ -27,7 +27,7 @@ pub struct CoinTossResult {
     gain: i64,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct CoinTossResponse {
     status_code: u16,
     status: Result<CoinTossResult, String>,
@@ -45,6 +45,7 @@ impl CoinTossResponse {
             }),
         }
     }
+
     pub fn lose(bet: u64, side: Coin, guess: Coin) -> Self {
         Self {
             status_code: 200,
@@ -56,6 +57,7 @@ impl CoinTossResponse {
             }),
         }
     }
+
     pub fn err(err: String) -> Self {
         Self {
             status_code: 501,
@@ -65,18 +67,20 @@ impl CoinTossResponse {
 }
 
 pub fn guess_side(bet: u64, side: &str) -> CoinTossResponse {
-    let valid: bool = ["heads", "h", "tails", "t"]
-        .iter()
-        .any(|&i| i == side.to_lowercase());
-    if !valid {
+    let side_lowercase = side.to_lowercase();
+
+    if !["heads", "h", "tails", "t"].contains(&&side_lowercase[..]) {
         return CoinTossResponse::err(String::from("Not a valid side, heads/tails."));
     };
-    let guessed_side: Coin = if side.starts_with('h') {
+
+    let guessed_side = if side.starts_with('h') {
         Coin::Heads
     } else {
         Coin::Tails
     };
+
     let side = Coin::flip();
+
     if guessed_side == side {
         CoinTossResponse::win(bet, side, guessed_side)
     } else {
@@ -87,8 +91,10 @@ pub fn guess_side(bet: u64, side: &str) -> CoinTossResponse {
 #[cfg(test)]
 mod test {
     extern crate test;
+
     use self::test::Bencher;
     use super::guess_side;
+
     #[bench]
     fn bench_coin(bench: &mut Bencher) {
         bench.iter(|| guess_side(0, "h"))
