@@ -6,7 +6,7 @@ use endpoints::router;
 use rocket;
 use rocket::local::Client;
 use serde_json::Value;
-use test::Bencher;
+use self::test::Bencher;
 use establish_connection_pool;
 
 #[derive(Clone, Debug, Deserialize, Serialize)]

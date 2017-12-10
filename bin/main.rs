@@ -1,19 +1,20 @@
 #![feature(plugin)]
 #![plugin(rocket_codegen)]
 #![feature(custom_derive, test)]
-#![allow(unknown_lints)]
 
 extern crate diesel;
 extern crate games_microservice;
-
-#[allow(unused_imports, useless_attribute)]
-#[macro_use]
-extern crate serde_derive;
 
 #[cfg(feature = "web")]
 extern crate rocket;
 #[cfg(feature = "web")]
 extern crate rocket_contrib;
+
+#[cfg(test)]
+#[macro_use]
+extern crate serde_derive;
+#[cfg(test)]
+extern crate serde_json;
 
 mod endpoints;
 

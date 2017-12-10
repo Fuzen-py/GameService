@@ -1,11 +1,10 @@
-#![allow(needless_pass_by_value)]
-
 use api::blackjack::{BlackJack, Response, SessionCount};
 use diesel::prelude::*;
 use rocket::State;
 use rocket_contrib::Json;
 use ConnectionPool;
 
+#[cfg_attr(feature = "cargo-clippy", allow(needless_pass_by_value))]
 #[get("/")]
 fn active_sessions(db_pool: State<ConnectionPool>) -> Json<SessionCount> {
     use games_microservice::schema::blackjack::dsl::*;
@@ -21,6 +20,7 @@ fn active_sessions(db_pool: State<ConnectionPool>) -> Json<SessionCount> {
     })
 }
 
+#[cfg_attr(feature = "cargo-clippy", allow(needless_pass_by_value))]
 #[get("/<user>")]
 fn user_info(db_pool: State<ConnectionPool>, user: u64) -> Json<Response> {
     Json(match BlackJack::restore(db_pool.clone(), user) {
@@ -29,6 +29,7 @@ fn user_info(db_pool: State<ConnectionPool>, user: u64) -> Json<Response> {
     })
 }
 
+#[cfg_attr(feature = "cargo-clippy", allow(needless_pass_by_value))]
 #[post("/<user>/create/<bet>")]
 fn create_user(db_pool: State<ConnectionPool>, user: u64, bet: u64)
     -> Json<Response> {
@@ -41,6 +42,7 @@ fn create_user(db_pool: State<ConnectionPool>, user: u64, bet: u64)
     })
 }
 
+#[cfg_attr(feature = "cargo-clippy", allow(needless_pass_by_value))]
 #[post("/<user>/hit")]
 fn player_hit(db_pool: State<ConnectionPool>, user: u64) -> Json<Response> {
     Json(match BlackJack::restore(db_pool.clone(), user) {
@@ -52,6 +54,7 @@ fn player_hit(db_pool: State<ConnectionPool>, user: u64) -> Json<Response> {
     })
 }
 
+#[cfg_attr(feature = "cargo-clippy", allow(needless_pass_by_value))]
 #[post("/<user>/stay")]
 fn player_stay(db_pool: State<ConnectionPool>, user: u64) -> Json<Response> {
     Json(match BlackJack::restore(db_pool.clone(), user) {
@@ -64,6 +67,7 @@ fn player_stay(db_pool: State<ConnectionPool>, user: u64) -> Json<Response> {
     })
 }
 
+#[cfg_attr(feature = "cargo-clippy", allow(needless_pass_by_value))]
 #[post("/<user>/claim")]
 fn claim(db_pool: State<ConnectionPool>, user: u64) -> Json<Response> {
     Json(match BlackJack::restore(db_pool.clone(), user) {
