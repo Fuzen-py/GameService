@@ -39,9 +39,13 @@ impl Weapons {
     }
 
     pub fn rand_weapon() -> Self {
-        match "rps".chars().nth(thread_rng().gen_range(0, 3)).unwrap() {
-            'p' => Weapons::Paper,
-            's' => Weapons::Scissors,
+        // Although the type system designates that selecting an Nth char of a
+        // string can result in None, as N is always 0 through 2 it won't be.
+        //
+        // Regardless, this match statement covers that non-existent case.
+        match "rps".chars().nth(thread_rng().gen_range(0, 3)) {
+            Some('p') => Weapons::Paper,
+            Some('s') => Weapons::Scissors,
             _ => Weapons::Rock,
         }
     }
@@ -93,23 +97,5 @@ impl Ord for Weapons {
                 Weapons::Scissors => Ordering::Equal,
             },
         }
-    }
-}
-
-#[cfg(test)]
-mod test {
-    use super::Weapons;
-
-    #[test]
-    fn test_comparision() {
-        assert!(Weapons::Rock == Weapons::Rock);
-        assert!(Weapons::Rock > Weapons::Scissors);
-        assert!(Weapons::Rock < Weapons::Paper);
-        assert!(Weapons::Paper == Weapons::Paper);
-        assert!(Weapons::Paper > Weapons::Rock);
-        assert!(Weapons::Paper < Weapons::Scissors);
-        assert!(Weapons::Scissors == Weapons::Scissors);
-        assert!(Weapons::Scissors > Weapons::Paper);
-        assert!(Weapons::Scissors < Weapons::Rock);
     }
 }

@@ -17,15 +17,17 @@ impl Hand {
     }
 
     pub fn score(&self) -> u64 {
-        let mut ace_count = 0u8;
+        let mut ace_count = 0u64;
         let mut total = 0u64;
+
         for card in &self.cards {
             if card.name == "Ace" {
-                ace_count += 1
+                ace_count += 1;
             } else {
                 total += u64::from(card.value);
             }
         }
+
         if ace_count >= 1 {
             if total <= 10 {
                 total += 11
@@ -36,12 +38,9 @@ impl Hand {
             ace_count -= 1;
         };
 
-        for _ in 0u8..ace_count {
-            total += 1
-        }
-
-        total
+        total + ace_count
     }
+
     pub fn export(&self) -> (u64, Vec<String>) {
         (self.score(), c![card.to_string(), for card in &self.cards])
     }

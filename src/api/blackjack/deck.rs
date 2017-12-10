@@ -11,7 +11,7 @@ pub struct Deck {
 impl Deck {
     #[allow(unused_mut)]
     pub fn new() -> Self {
-        let mut cards = DECK_OF_CARDS.clone();
+        let mut cards = DECK_OF_CARDS.to_vec();
 
         #[cfg(not(test))]
         {
@@ -19,22 +19,26 @@ impl Deck {
         }
 
         Self {
-            cards: cards.to_vec(),
+            cards,
         }
     }
 
-    pub fn draw(&mut self) -> Card {
+    pub fn draw(&mut self) -> Option<Card> {
         // Game should never get to the point where the deck is empty
         #[cfg(not(test))]
         {
             let i = thread_rng().gen_range(0, self.cards.len());
 
-            self.cards.remove(i)
+            if self.cards.len() < i {
+                Some(self.cards.remove(i))
+            } else {
+                None
+            }
         }
 
         #[cfg(test)]
         {
-            self.cards.pop().unwrap()
+            Some(self.cards.pop().unwrap())
         }
     }
 

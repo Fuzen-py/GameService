@@ -15,6 +15,3 @@ pub use self::response::SessionCount;
 pub use models::BJSession as Session;
 
 use self::deck_of_cards::DECK_OF_CARDS;
-
-#[cfg(any(test, bench))]
-mod tests;

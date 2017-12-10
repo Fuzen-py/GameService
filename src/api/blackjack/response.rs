@@ -44,16 +44,16 @@ impl Response {
         Response {
             status_code: 200,
             status: Ok(Success {
-                player_id: player_id,
-                player_hand: player_hand,
-                dealer_hand: dealer_hand,
-                player_score: player_score,
-                dealer_score: dealer_score,
                 bet: bj.bet,
                 gain: bj.gain,
                 game_state: state,
                 player_can_hit: !bj.player_stay_status,
                 dealer_can_hit: !bj.dealer_stay_status,
+                player_id,
+                player_hand,
+                dealer_hand,
+                player_score,
+                dealer_score,
             }),
         }
     }

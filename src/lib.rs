@@ -1,23 +1,25 @@
 #![recursion_limit = "128"]
 #![feature(custom_derive, test, const_fn, custom_attribute)]
-#![allow(unknown_lints)]
 
 #[macro_use] extern crate cfg_if;
 #[macro_use(c)] extern crate cute;
 #[macro_use] extern crate diesel;
 #[macro_use] extern crate diesel_migrations;
 #[macro_use] extern crate lazy_static;
+#[macro_use] extern crate log;
 #[macro_use(Serialize, Deserialize)] extern crate serde_derive;
 
 extern crate dotenv;
 extern crate r2d2;
 extern crate r2d2_diesel;
 extern crate rand;
+extern crate regex;
 
 pub use diesel::prelude::*;
 pub use diesel::pg::PgConnection;
 
 use dotenv::dotenv;
+use r2d2::Pool;
 use r2d2_diesel::ConnectionManager;
 use std::env;
 
@@ -25,7 +27,7 @@ pub mod api;
 pub mod models;
 pub mod schema;
 
-pub type ConnectionPool = r2d2::Pool<r2d2_diesel::ConnectionManager<PgConnection>>;
+pub type ConnectionPool = Pool<ConnectionManager<PgConnection>>;
 
 embed_migrations!("migrations");
 
@@ -56,12 +58,19 @@ pub fn establish_connection_pool() -> ConnectionPool {
     }.expect("Failed to create connection pool");
 
     // Run migrations
-    embedded_migrations::run(&*(pool.clone().get().unwrap())).ok();
+    match pool.get() {
+        Ok(conn) => {
+            embedded_migrations::run(&*conn).expect("Error running migrations");
+        },
+        Err(why) => {
+            error!("Error obtaining conn to run migrations: {:?}", why);
+        },
+    }
 
     #[cfg(test)]
     {
         use schema::blackjack::dsl::*;
-        let conn = pool.clone().get().unwrap();
+        let conn = pool.get().unwrap();
         let _num = diesel::delete(blackjack.filter(id.is_not_null()))
             .execute(&*conn)
             .expect("Error deleting Previous BlackJack Test data");

@@ -2,6 +2,7 @@ use api::blackjack::{BlackJack, Response, SessionCount};
 use diesel::prelude::*;
 use rocket::State;
 use rocket_contrib::Json;
+use std::error::Error;
 use ConnectionPool;
 
 #[cfg_attr(feature = "cargo-clippy", allow(needless_pass_by_value))]
@@ -9,7 +10,7 @@ use ConnectionPool;
 fn active_sessions(db_pool: State<ConnectionPool>) -> Json<SessionCount> {
     use games_microservice::schema::blackjack::dsl::*;
 
-    let conn = db_pool.clone().get().unwrap();
+    let conn = db_pool.get().unwrap();
     let result = blackjack.filter(status.is_null())
         .count()
         .get_result::<i64>(&*conn);
@@ -23,7 +24,7 @@ fn active_sessions(db_pool: State<ConnectionPool>) -> Json<SessionCount> {
 #[cfg_attr(feature = "cargo-clippy", allow(needless_pass_by_value))]
 #[get("/<user>")]
 fn user_info(db_pool: State<ConnectionPool>, user: u64) -> Json<Response> {
-    Json(match BlackJack::restore(db_pool.clone(), user) {
+    Json(match BlackJack::restore(&db_pool, user) {
         Ok(bj) => Response::success(&bj),
         Err(_) => Response::error(501, "User does not exist"),
     })
@@ -45,10 +46,10 @@ fn create_user(db_pool: State<ConnectionPool>, user: u64, bet: u64)
 #[cfg_attr(feature = "cargo-clippy", allow(needless_pass_by_value))]
 #[post("/<user>/hit")]
 fn player_hit(db_pool: State<ConnectionPool>, user: u64) -> Json<Response> {
-    Json(match BlackJack::restore(db_pool.clone(), user) {
+    Json(match BlackJack::restore(&db_pool, user) {
         Ok(mut bj) => match bj.player_hit() {
             Ok(_) => Response::success(&bj),
-            Err(err) => Response::error(501, err),
+            Err(err) => Response::error(501, err.description()),
         },
         Err(_) => Response::error(501, "User does not exist"),
     })
@@ -57,9 +58,10 @@ fn player_hit(db_pool: State<ConnectionPool>, user: u64) -> Json<Response> {
 #[cfg_attr(feature = "cargo-clippy", allow(needless_pass_by_value))]
 #[post("/<user>/stay")]
 fn player_stay(db_pool: State<ConnectionPool>, user: u64) -> Json<Response> {
-    Json(match BlackJack::restore(db_pool.clone(), user) {
+    Json(match BlackJack::restore(&db_pool, user) {
         Ok(mut bj) => {
-            bj.player_stay();
+            // TODO: check if this is an error and don't return success if so
+            let _ = bj.player_stay();
 
             Response::success(&bj)
         }
@@ -70,7 +72,7 @@ fn player_stay(db_pool: State<ConnectionPool>, user: u64) -> Json<Response> {
 #[cfg_attr(feature = "cargo-clippy", allow(needless_pass_by_value))]
 #[post("/<user>/claim")]
 fn claim(db_pool: State<ConnectionPool>, user: u64) -> Json<Response> {
-    Json(match BlackJack::restore(db_pool.clone(), user) {
+    Json(match BlackJack::restore(&db_pool, user) {
         Ok(bj) => match bj.claim() {
             Ok(bj) => Response::success(&bj),
             Err(_) => Response::error(501, "Game is not over yet"),

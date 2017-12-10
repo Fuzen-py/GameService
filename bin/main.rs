@@ -1,6 +1,5 @@
-#![feature(plugin)]
 #![plugin(rocket_codegen)]
-#![feature(custom_derive, test)]
+#![feature(custom_derive, plugin, test)]
 
 extern crate diesel;
 extern crate games_microservice;

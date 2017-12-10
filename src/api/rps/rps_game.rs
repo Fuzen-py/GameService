@@ -3,36 +3,24 @@ use api::rps::Response;
 
 // Replace this with a response struct
 pub fn rps(bet: u64, weapon: &str) -> Response {
-    let weapon = weapon.parse::<Weapons>();
+    let weapon = match weapon.parse::<Weapons>() {
+        Ok(v) => v,
+        Err(_) => {
+            return Response::error(
+                bet,
+                String::from("Valid choices are rock/paper/scissors"),
+            );
+        },
+    };
 
-    if weapon.is_err() {
-        return Response::error(bet, String::from("Valid choices are rock/paper/scissors"));
-    }
-
-    let weapon = weapon.unwrap();
     let comp = Weapons::rand_weapon();
 
     if weapon == comp {
-        return Response::draw(bet, weapon.to_string(), comp.to_string());
-    }
-
-    if weapon > comp {
+        Response::draw(bet, weapon.to_string(), comp.to_string())
+    } else if weapon > comp {
         // Win
-        return Response::win(bet, weapon.to_string(), comp.to_string());
-    }
-
-    Response::lose(bet, weapon.to_string(), comp.to_string())
-}
-
-#[cfg(test)]
-mod test {
-    extern crate test;
-
-    use self::test::Bencher;
-    use api::rps::rps;
-
-    #[bench]
-    fn bench_rps(b: &mut Bencher) {
-        b.iter(|| rps(100, "r"))
+        Response::win(bet, weapon.to_string(), comp.to_string())
+    } else {
+        Response::lose(bet, weapon.to_string(), comp.to_string())
     }
 }

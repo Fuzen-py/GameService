@@ -87,16 +87,3 @@ pub fn guess_side(bet: u64, side: &str) -> CoinTossResponse {
         CoinTossResponse::lose(bet, side, guessed_side)
     }
 }
-
-#[cfg(test)]
-mod test {
-    extern crate test;
-
-    use self::test::Bencher;
-    use super::guess_side;
-
-    #[bench]
-    fn bench_coin(bench: &mut Bencher) {
-        bench.iter(|| guess_side(0, "h"))
-    }
-}
