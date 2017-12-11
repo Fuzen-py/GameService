@@ -68,10 +68,7 @@ impl Response {
     pub fn error(bet: u64, msg: String) -> Self {
         Self {
             status_code: 501,
-            status: Err(Error {
-                bet,
-                msg,
-            }),
+            status: Err(Error { bet, msg }),
         }
     }
 }

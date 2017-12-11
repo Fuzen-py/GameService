@@ -12,16 +12,7 @@ pub struct Card {
 }
 
 const NON_ROYALTY_CARDS: [&str; 10] = [
-    "ACE",
-    "TWOS",
-    "THREES",
-    "FOURS",
-    "FIVES",
-    "SIXES",
-    "SEVENS",
-    "EIGHTS",
-    "NINES",
-    "TENS",
+    "ACE", "TWOS", "THREES", "FOURS", "FIVES", "SIXES", "SEVENS", "EIGHTS", "NINES", "TENS"
 ];
 
 const VALID_SYMBOLS: [&str; 4] = ["HEARTS", "SPADES", "CLUBS", "DIAMONDS"];
@@ -63,30 +54,32 @@ impl FromStr for Card {
             static ref RE: Regex = Regex::new(r"(.*):(.*)").unwrap();
         }
 
-        let data = RE.captures_iter(s).next().ok_or_else(|| {
-            CardParseError::NoCaptureGroup
-        })?;
+        let data = RE.captures_iter(s)
+            .next()
+            .ok_or_else(|| CardParseError::NoCaptureGroup)?;
 
         let symbol_pos = VALID_SYMBOLS
             .iter()
             .position(|&r| r == &data[1])
             .ok_or_else(|| CardParseError::NoSymbol)?;
 
-        Ok(match NON_ROYALTY_CARDS.iter().position(|&r| r == &data[2]) {
-            Some(position) => Card {
-                name: NON_ROYALTY_CARDS[position],
-                value: position as u8 + 1u8,
-                symbol: VALID_SYMBOLS[symbol_pos],
-            },
-            None => match ROYALTY_CARDS.iter().position(|&r| r == &data[2]) {
+        Ok(
+            match NON_ROYALTY_CARDS.iter().position(|&r| r == &data[2]) {
                 Some(position) => Card {
-                    name: ROYALTY_CARDS[position],
-                    value: 10u8,
+                    name: NON_ROYALTY_CARDS[position],
+                    value: position as u8 + 1u8,
                     symbol: VALID_SYMBOLS[symbol_pos],
                 },
-                None => return Err(CardParseError::InvalidCard),
+                None => match ROYALTY_CARDS.iter().position(|&r| r == &data[2]) {
+                    Some(position) => Card {
+                        name: ROYALTY_CARDS[position],
+                        value: 10u8,
+                        symbol: VALID_SYMBOLS[symbol_pos],
+                    },
+                    None => return Err(CardParseError::InvalidCard),
+                },
             },
-        })
+        )
     }
 }
 

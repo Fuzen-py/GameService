@@ -6,11 +6,8 @@ pub fn rps(bet: u64, weapon: &str) -> Response {
     let weapon = match weapon.parse::<Weapons>() {
         Ok(v) => v,
         Err(_) => {
-            return Response::error(
-                bet,
-                String::from("Valid choices are rock/paper/scissors"),
-            );
-        },
+            return Response::error(bet, String::from("Valid choices are rock/paper/scissors"));
+        }
     };
 
     let comp = Weapons::rand_weapon();

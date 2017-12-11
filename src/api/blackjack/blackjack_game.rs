@@ -30,6 +30,9 @@ pub enum BlackJackError {
     PlayerAlreadyWon,
     PlayerNotDoneYet,
     R2d2(R2d2Error),
+    SessionAlreadyExists,
+    GameStillInProgress,
+    SessionDoesNotExist,
 }
 
 impl Display for BlackJackError {
@@ -56,6 +59,9 @@ impl StdError for BlackJackError {
             PlayerAlreadyWon => "You already won",
             PlayerNotDoneYet => "Player is not done yet",
             R2d2(ref inner) => inner.description(),
+            SessionAlreadyExists => "Player already exists, please finish and claim result",
+            GameStillInProgress => "Game is still in progress",
+            SessionDoesNotExist => "Player does not exist",
         }
     }
 }
@@ -75,6 +81,30 @@ impl From<DieselResultError> for BlackJackError {
 impl From<R2d2Error> for BlackJackError {
     fn from(err: R2d2Error) -> Self {
         BlackJackError::R2d2(err)
+    }
+}
+
+impl BlackJackError {
+    #[cfg_attr(feature = "cargo-clippy", allow(match_same_arms))]
+    pub fn status_code(&self) -> u16 {
+        use self::BlackJackError::*;
+        match *self {
+            CardParse(_) => 500,
+            DealerAlreadyLost => 501,
+            DealerAlreadyPressedStay => 500,
+            DealerAlreadyWon => 501,
+            NoCard => 500,
+            PlayerAlreadyLost => 501,
+            PlayerAlreadyPressedStay => 500,
+            GameOver => 501,
+            InvalidResultCount(_) => 500,
+            PlayerAlreadyWon => 501,
+            PlayerNotDoneYet => 501,
+            SessionAlreadyExists => 501,
+            GameStillInProgress => 501,
+            SessionDoesNotExist => 501,
+            _ => 500,
+        }
     }
 }
 
@@ -98,7 +128,11 @@ pub struct BlackJack {
 }
 
 impl BlackJack {
-    pub fn new(player_id: u64, new_bet: u64, db_pool: ConnectionPool) -> Option<Self> {
+    pub fn new(
+        player_id: u64,
+        new_bet: u64,
+        db_pool: ConnectionPool,
+    ) -> Result<Self, BlackJackError> {
         use schema::blackjack::dsl::*;
         use schema::blackjack as blackjack_schema;
 
@@ -112,7 +146,7 @@ impl BlackJack {
             .unwrap_or_default();
 
         if num != 0 {
-            return None;
+            return Err(BlackJackError::SessionAlreadyExists);
         }
 
         let mut new_deck = Deck::new();
@@ -149,7 +183,7 @@ impl BlackJack {
                 .expect("Error saving sessions");
         }
 
-        Some(Self {
+        Ok(Self {
             player_id: player_id,
             player: player,
             dealer: dealer,
@@ -220,7 +254,7 @@ impl BlackJack {
         match self.status() {
             GameState::InProgress => if !self.player_stay_status {
                 self.first_turn = false;
-                Ok(self.player.add_card(self.deck.draw().ok_or(BlackJackError::NoCard)?))
+                Ok(self.player.add_card(self.deck.draw()?))
             } else {
                 Err(BlackJackError::PlayerAlreadyPressedStay)
             },
@@ -242,7 +276,7 @@ impl BlackJack {
     fn dealer_hit(&mut self) -> Result<(), BlackJackError> {
         match self.status() {
             GameState::InProgress => if !self.dealer_stay_status {
-                Ok(self.dealer.add_card(self.deck.draw().ok_or(BlackJackError::NoCard)?))
+                Ok(self.dealer.add_card(self.deck.draw()?))
             } else {
                 Err(BlackJackError::DealerAlreadyPressedStay)
             },
@@ -350,28 +384,27 @@ impl BlackJack {
 
         let conn = self.db_pool.get()?;
 
-        diesel::delete(blackjack.filter(id.eq(self.player_id as i64)))
-            .execute(&*conn)?;
+        diesel::delete(blackjack.filter(id.eq(self.player_id as i64))).execute(&*conn)?;
 
         Ok(())
     }
 
     /// Consumes session and returns Gain
-    pub fn claim(mut self) -> Result<Self, Self> {
+    pub fn claim(&mut self) -> Result<i64, BlackJackError> {
         match self.status() {
-            GameState::InProgress => Err(self),
+            GameState::InProgress => Err(BlackJackError::GameStillInProgress),
             GameState::PlayerLost => {
                 self.claimed = true;
                 self.gain = -(self.bet as i64);
 
-                Ok(self)
-            },
+                Ok(self.gain)
+            }
             GameState::PlayerWon => {
                 self.claimed = true;
                 self.gain = self.bet as i64;
 
-                Ok(self)
-            },
+                Ok(self.gain)
+            }
         }
     }
 }
@@ -382,10 +415,10 @@ impl Drop for BlackJack {
             // Save before vanishing
 
             if let Err(why) = self.save() {
-                warn!("Error saving to DB: {:?}", why);
+                panic!("Error saving to DB: {:?}", why);
             }
         } else if let Err(why) = self.db_remove() {
-            warn!("Error removing from DB: {:?}", why);
+            panic!("Error removing from DB: {:?}", why);
         }
     }
 }

@@ -16,7 +16,7 @@ impl SlotMachine {
         let mut choices = Vec::with_capacity(3);
         let mut rng = thread_rng();
 
-        for _ in 0 .. 3 {
+        for _ in 0..3 {
             choices.push(ROW[rng.gen_range(0, ROW_LEN)].to_string());
         }
 
@@ -37,11 +37,7 @@ impl SlotMachine {
             _ => unreachable!(),
         };
 
-        Self {
-            bet,
-            gain,
-            picks,
-        }
+        Self { bet, gain, picks }
     }
 }
 

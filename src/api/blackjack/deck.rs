@@ -1,7 +1,4 @@
-use api::blackjack::{DECK_OF_CARDS, Card};
-
-#[cfg(not(any(test, bench)))]
-use rand::{thread_rng, Rng};
+use api::blackjack::{BlackJackError, Card, DECK_OF_CARDS};
 
 #[derive(Clone, Debug, Default)]
 pub struct Deck {
@@ -13,32 +10,20 @@ impl Deck {
     pub fn new() -> Self {
         let mut cards = DECK_OF_CARDS.to_vec();
 
-        #[cfg(not(test))]
+        #[cfg(not(any(test, bench)))]
         {
+            use rand::{thread_rng, Rng};
             thread_rng().shuffle(&mut cards);
         }
 
-        Self {
-            cards,
-        }
+        Self { cards }
     }
 
-    pub fn draw(&mut self) -> Option<Card> {
+    pub fn draw(&mut self) -> Result<Card, BlackJackError> {
         // Game should never get to the point where the deck is empty
-        #[cfg(not(test))]
-        {
-            let i = thread_rng().gen_range(0, self.cards.len());
-
-            if self.cards.len() < i {
-                Some(self.cards.remove(i))
-            } else {
-                None
-            }
-        }
-
-        #[cfg(test)]
-        {
-            Some(self.cards.pop().unwrap())
+        match self.cards.pop() {
+            Some(card) => Ok(card),
+            None => Err(BlackJackError::NoCard),
         }
     }
 

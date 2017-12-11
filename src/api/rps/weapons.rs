@@ -61,9 +61,11 @@ impl FromStr for Weapons {
                 'r' => Weapons::Rock,
                 'p' => Weapons::Paper,
                 's' => Weapons::Scissors,
-                _ => return Err(Self::Err {
-                    description: weapon.to_string(),
-                }),
+                _ => {
+                    return Err(Self::Err {
+                        description: weapon.to_string(),
+                    })
+                }
             }),
             None => Err(Self::Err {
                 description: weapon.to_string(),

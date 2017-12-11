@@ -2,7 +2,6 @@ use api::blackjack::{BlackJack, Response, SessionCount};
 use diesel::prelude::*;
 use rocket::State;
 use rocket_contrib::Json;
-use std::error::Error;
 use ConnectionPool;
 
 #[cfg_attr(feature = "cargo-clippy", allow(needless_pass_by_value))]
@@ -26,7 +25,7 @@ fn active_sessions(db_pool: State<ConnectionPool>) -> Json<SessionCount> {
 fn user_info(db_pool: State<ConnectionPool>, user: u64) -> Json<Response> {
     Json(match BlackJack::restore(&db_pool, user) {
         Ok(bj) => Response::success(&bj),
-        Err(_) => Response::error(501, "User does not exist"),
+        Err(err) => Response::error(&err),
     })
 }
 
@@ -35,11 +34,8 @@ fn user_info(db_pool: State<ConnectionPool>, user: u64) -> Json<Response> {
 fn create_user(db_pool: State<ConnectionPool>, user: u64, bet: u64)
     -> Json<Response> {
     Json(match BlackJack::new(user, bet, db_pool.clone()) {
-        Some(bj) => Response::success(&bj),
-        None => Response::error(
-            501,
-            "Failed to create, bet must be claimed before recreating a session.",
-        ),
+        Ok(bj) => Response::success(&bj),
+        Err(err) => Response::error(&err),
     })
 }
 
@@ -49,9 +45,9 @@ fn player_hit(db_pool: State<ConnectionPool>, user: u64) -> Json<Response> {
     Json(match BlackJack::restore(&db_pool, user) {
         Ok(mut bj) => match bj.player_hit() {
             Ok(_) => Response::success(&bj),
-            Err(err) => Response::error(501, err.description()),
+            Err(err) => Response::error(&err),
         },
-        Err(_) => Response::error(501, "User does not exist"),
+        Err(err) => Response::error(&err),
     })
 }
 
@@ -65,7 +61,7 @@ fn player_stay(db_pool: State<ConnectionPool>, user: u64) -> Json<Response> {
 
             Response::success(&bj)
         }
-        Err(_) => Response::error(501, "User does not exist"),
+        Err(err) => Response::error(&err),
     })
 }
 
@@ -73,10 +69,10 @@ fn player_stay(db_pool: State<ConnectionPool>, user: u64) -> Json<Response> {
 #[post("/<user>/claim")]
 fn claim(db_pool: State<ConnectionPool>, user: u64) -> Json<Response> {
     Json(match BlackJack::restore(&db_pool, user) {
-        Ok(bj) => match bj.claim() {
-            Ok(bj) => Response::success(&bj),
-            Err(_) => Response::error(501, "Game is not over yet"),
+        Ok(mut bj) => match bj.claim() {
+            Ok(_) => Response::success(&bj),
+            Err(err) => Response::error(&err),
         },
-        Err(_) => Response::error(501, "User does not exist"),
+        Err(err) => Response::error(&err),
     })
 }

@@ -17,12 +17,12 @@ mod blackjack {
             uid += 1;
 
             {
-                let mut bj = BlackJack::new(uid, 0, pool.clone()).unwrap();
-                bj.player_hit().unwrap();
-                bj.player_stay().unwrap();
+                let mut bj = BlackJack::new(uid, 0, pool.clone()).expect("Failed to create BlackJack Session");
+                bj.player_hit().expect("Player hit failed");
+                bj.player_stay().expect("Player Stay failed");
             }
 
-            BlackJack::restore(&pool, uid).unwrap().claim().ok();
+            BlackJack::restore(&pool, uid).expect("Restore failed").claim().ok();
         })
     }
 }

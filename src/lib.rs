@@ -1,13 +1,20 @@
 #![recursion_limit = "128"]
 #![feature(custom_derive, test, const_fn, custom_attribute)]
 
-#[macro_use] extern crate cfg_if;
-#[macro_use(c)] extern crate cute;
-#[macro_use] extern crate diesel;
-#[macro_use] extern crate diesel_migrations;
-#[macro_use] extern crate lazy_static;
-#[macro_use] extern crate log;
-#[macro_use(Serialize, Deserialize)] extern crate serde_derive;
+#[macro_use]
+extern crate cfg_if;
+#[macro_use(c)]
+extern crate cute;
+#[macro_use]
+extern crate diesel;
+#[macro_use]
+extern crate diesel_migrations;
+#[macro_use]
+extern crate lazy_static;
+#[macro_use]
+extern crate log;
+#[macro_use(Serialize, Deserialize)]
+extern crate serde_derive;
 
 extern crate dotenv;
 extern crate r2d2;
@@ -61,10 +68,10 @@ pub fn establish_connection_pool() -> ConnectionPool {
     match pool.get() {
         Ok(conn) => {
             embedded_migrations::run(&*conn).expect("Error running migrations");
-        },
+        }
         Err(why) => {
             error!("Error obtaining conn to run migrations: {:?}", why);
-        },
+        }
     }
 
     #[cfg(test)]
