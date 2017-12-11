@@ -12,8 +12,6 @@ pub use self::blackjack_game::BlackJack;
 pub use self::blackjack_game::GameState;
 pub use self::response::Response;
 pub use self::response::SessionCount;
-use self::deck_of_cards::DECK_OF_CARDS;
 pub use models::BJSession as Session;
 
-#[cfg(any(test, bench))]
-mod tests;
+use self::deck_of_cards::DECK_OF_CARDS;
