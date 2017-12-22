@@ -1,5 +1,4 @@
 extern crate games_microservice;
-
 use games_microservice::games::rps::Weapons;
 
 #[test]

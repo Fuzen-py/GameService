@@ -55,6 +55,7 @@ impl Response {
                 game_state: state,
                 player_can_hit: !bj.player_stay_status,
                 dealer_can_hit: !bj.dealer_stay_status,
+                #[cfg(feature = "auto_save")]
                 player_id,
                 player_hand,
                 dealer_hand,

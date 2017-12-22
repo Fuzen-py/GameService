@@ -28,6 +28,7 @@ impl Hand {
                 total += u64::from(card_value(card));
             }
         }
+
         if ace_count >= 1 {
             if total <= 10 {
                 total += 11
