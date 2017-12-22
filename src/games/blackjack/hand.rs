@@ -1,4 +1,5 @@
-use api::blackjack::Card;
+use super::Card;
+use super::blackjack_game::{card_suit, card_value};
 
 #[derive(Clone, Debug, Default)]
 pub struct Hand {
@@ -21,13 +22,12 @@ impl Hand {
         let mut total = 0u64;
 
         for card in &self.cards {
-            if card.name == "Ace" {
+            if card_suit(card) == "Ace" {
                 ace_count += 1;
             } else {
-                total += u64::from(card.value);
+                total += u64::from(card_value(card));
             }
         }
-
         if ace_count >= 1 {
             if total <= 10 {
                 total += 11

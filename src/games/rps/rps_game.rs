@@ -1,5 +1,4 @@
-use api::rps::Weapons;
-use api::rps::Response;
+use super::{Response, Weapons};
 
 // Replace this with a response struct
 pub fn rps(bet: u64, weapon: &str) -> Response {

@@ -1,18 +1,64 @@
-use api::blackjack::{Deck, Hand, Session};
+#[cfg(feature = "auto_save")]
+use super::Session;
+#[cfg(feature = "auto_save")]
 use diesel::prelude::*;
+#[cfg(feature = "auto_save")]
 use diesel::result::Error as DieselResultError;
+#[cfg(feature = "auto_save")]
 use diesel;
+#[cfg(feature = "auto_save")]
 use r2d2::Error as R2d2Error;
 use std::error::Error as StdError;
 use std::fmt::{Display, Formatter, Result as FmtResult};
-use super::cards::CardParseError;
+use super::{Card, CardFace, CardParseError, Deck, DeckError, Hand};
+#[cfg(feature = "auto_save")]
 use ConnectionPool;
-
 #[derive(Clone, Debug, Eq, Hash, PartialEq, PartialOrd, Ord)]
 pub enum GameState {
     InProgress,
     PlayerWon,
     PlayerLost,
+}
+
+fn face_vale(face: &CardFace) -> u8 {
+    use self::CardFace::*;
+    #[cfg_attr(feature = "cargo-clippy", allow(match_same_arms))]
+    match *face {
+        Ace => 11_u8,
+        Two => 2_u8,
+        Three => 3_u8,
+        Four => 4_u8,
+        Five => 5_u8,
+        Six => 6_u8,
+        Seven => 7_u8,
+        Eight => 8_u8,
+        Nine => 9_u8,
+        Ten => 10_u8,
+        Jack => 10_u8,
+        Queen => 10_u8,
+        King => 10_u8,
+        _ => unreachable!(),
+    }
+}
+
+pub fn card_value(card: &Card) -> u8 {
+    use self::Card::*;
+
+    match *card {
+        Hearts(ref face) | Clubs(ref face) | Spades(ref face) | Diamonds(ref face) => {
+            face_vale(face)
+        }
+    }
+}
+
+pub fn card_suit(card: &Card) -> &'static str {
+    use self::Card::*;
+    match *card {
+        Hearts(_) => "Hearts",
+        Clubs(_) => "Clubs",
+        Spades(_) => "Spades",
+        Diamonds(_) => "Diamonds",
+    }
 }
 
 #[derive(Debug)]
@@ -21,7 +67,7 @@ pub enum BlackJackError {
     DealerAlreadyLost,
     DealerAlreadyPressedStay,
     DealerAlreadyWon,
-    DieselResult(DieselResultError),
+    #[cfg(feature = "auto_save")] DieselResult(DieselResultError),
     GameOver,
     InvalidResultCount(usize),
     NoCard,
@@ -29,7 +75,7 @@ pub enum BlackJackError {
     PlayerAlreadyPressedStay,
     PlayerAlreadyWon,
     PlayerNotDoneYet,
-    R2d2(R2d2Error),
+    #[cfg(feature = "auto_save")] R2d2(R2d2Error),
     SessionAlreadyExists,
     GameStillInProgress,
     SessionDoesNotExist,
@@ -44,12 +90,12 @@ impl Display for BlackJackError {
 impl StdError for BlackJackError {
     fn description(&self) -> &str {
         use self::BlackJackError::*;
-
         match *self {
             CardParse(ref inner) => inner.description(),
             DealerAlreadyLost => "The dealer already lost",
             DealerAlreadyPressedStay => "The dealer already pressed stay",
             DealerAlreadyWon => "The dealer already won",
+            #[cfg(feature = "auto_save")]
             DieselResult(ref inner) => inner.description(),
             GameOver => "The game is over",
             InvalidResultCount(_) => "More than or less than 1 game result found",
@@ -58,6 +104,7 @@ impl StdError for BlackJackError {
             PlayerAlreadyPressedStay => "You already pressed stay",
             PlayerAlreadyWon => "You already won",
             PlayerNotDoneYet => "Player is not done yet",
+            #[cfg(feature = "auto_save")]
             R2d2(ref inner) => inner.description(),
             SessionAlreadyExists => "Player already exists, please finish and claim result",
             GameStillInProgress => "Game is still in progress",
@@ -71,16 +118,22 @@ impl From<CardParseError> for BlackJackError {
         BlackJackError::CardParse(err)
     }
 }
-
+#[cfg(feature = "auto_save")]
 impl From<DieselResultError> for BlackJackError {
     fn from(err: DieselResultError) -> Self {
         BlackJackError::DieselResult(err)
     }
 }
-
+#[cfg(feature = "auto_save")]
 impl From<R2d2Error> for BlackJackError {
     fn from(err: R2d2Error) -> Self {
         BlackJackError::R2d2(err)
+    }
+}
+
+impl From<DeckError> for BlackJackError {
+    fn from(_: DeckError) -> Self {
+        BlackJackError::NoCard
     }
 }
 
@@ -103,6 +156,7 @@ impl BlackJackError {
             SessionAlreadyExists => 501,
             GameStillInProgress => 501,
             SessionDoesNotExist => 501,
+            #[cfg(feature = "auto_save")]
             _ => 500,
         }
     }
@@ -114,7 +168,7 @@ impl BlackJackError {
 #[derive(Clone)]
 pub struct BlackJack {
     pub player: Hand,
-    pub player_id: u64,
+    #[cfg(feature = "auto_save")] pub player_id: u64,
     pub dealer: Hand,
     deck: Deck,
     pub bet: u64,
@@ -123,11 +177,12 @@ pub struct BlackJack {
     pub player_stay_status: bool,
     pub dealer_stay_status: bool,
     pub gain: i64,
-    db_pool: ConnectionPool,
-    claimed: bool,
+    #[cfg(feature = "auto_save")] db_pool: ConnectionPool,
+    #[cfg(feature = "auto_save")] claimed: bool,
 }
 
 impl BlackJack {
+    #[cfg(feature = "auto_save")]
     pub fn new(
         player_id: u64,
         new_bet: u64,
@@ -197,7 +252,28 @@ impl BlackJack {
             gain: 0i64,
         })
     }
+    #[cfg(not(feature = "auto_save"))]
+    pub fn new(bet: u64) -> Result<Self, BlackJackError> {
+        let mut deck = Deck::new();
+        let mut player = Hand::new();
+        let mut dealer = Hand::new();
+        player.add_card(deck.draw()?);
+        player.add_card(deck.draw()?);
+        dealer.add_card(deck.draw()?);
+        dealer.add_card(deck.draw()?);
+        Ok(Self {
+            deck,
+            player,
+            dealer,
+            bet,
+            dealer_stay_status: false,
+            player_stay_status: false,
+            first_turn: true,
+            gain: 0i64,
+        })
+    }
 
+    #[cfg(feature = "auto_save")]
     pub fn restore(db_pool: &ConnectionPool, player: u64) -> Result<Self, BlackJackError> {
         use schema::blackjack::dsl::*;
 
@@ -352,7 +428,7 @@ impl BlackJack {
 
         Ok(())
     }
-
+    #[cfg(feature = "auto_save")]
     pub fn save(&self) -> Result<(), BlackJackError> {
         let conn = self.db_pool.get()?;
 
@@ -378,7 +454,11 @@ impl BlackJack {
 
         Ok(())
     }
-
+    #[cfg(not(feature = "auto_save"))]
+    pub fn save(&self) -> Result<(), BlackJackError> {
+        unimplemented!()
+    }
+    #[cfg(feature = "auto_save")]
     fn db_remove(&self) -> Result<(), BlackJackError> {
         use schema::blackjack::dsl::*;
 
@@ -394,13 +474,19 @@ impl BlackJack {
         match self.status() {
             GameState::InProgress => Err(BlackJackError::GameStillInProgress),
             GameState::PlayerLost => {
-                self.claimed = true;
+                #[cfg(feature = "auto_save")]
+                {
+                    self.claimed = true;
+                }
                 self.gain = -(self.bet as i64);
 
                 Ok(self.gain)
             }
             GameState::PlayerWon => {
-                self.claimed = true;
+                #[cfg(feature = "auto_save")]
+                {
+                    self.claimed = true;
+                }
                 self.gain = self.bet as i64;
 
                 Ok(self.gain)
@@ -409,6 +495,7 @@ impl BlackJack {
     }
 }
 
+#[cfg(feature = "auto_save")]
 impl Drop for BlackJack {
     fn drop(&mut self) {
         if !self.claimed {

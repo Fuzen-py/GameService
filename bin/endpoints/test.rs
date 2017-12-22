@@ -1,7 +1,7 @@
 extern crate serde_json;
 extern crate test;
 
-use api::blackjack::Response;
+use games::blackjack::Response;
 use endpoints::router;
 use rocket;
 use rocket::local::Client;

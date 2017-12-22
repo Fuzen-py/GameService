@@ -1,4 +1,4 @@
-use api::slot_machine::{Response, SlotMachine};
+use games::slot_machine::{Response, SlotMachine};
 use rocket_contrib::Json;
 
 #[get("/<bet>")]

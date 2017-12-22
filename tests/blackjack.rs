@@ -1,5 +1,5 @@
 extern crate games_microservice;
-use games_microservice::api::blackjack::*;
+use games_microservice::games::blackjack::*;
 //use games_microservice::establish_connection_pool;
 
 #[test]

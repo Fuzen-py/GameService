@@ -1,4 +1,4 @@
-use api::blackjack::{BlackJack, Response, SessionCount};
+use games::blackjack::{BlackJack, Response, SessionCount};
 use diesel::prelude::*;
 use rocket::State;
 use rocket_contrib::Json;

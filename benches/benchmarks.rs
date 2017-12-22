@@ -3,33 +3,55 @@
 extern crate games_microservice;
 extern crate test;
 
+#[cfg(feature = "auto_save")]
 mod blackjack {
-    use games_microservice::api::blackjack::BlackJack;
+    use games_microservice::games::blackjack::BlackJack;
     use games_microservice::establish_connection_pool;
     use test::Bencher;
 
     #[bench]
     fn bench_mark(b: &mut Bencher) {
+        use games_microservice::games::blackjack::BlackJackError::*;
         let pool = establish_connection_pool();
-        let mut uid = 10_000;
+        let mut uid = 10_000_000;
 
         b.iter(move || {
             uid += 1;
 
             {
                 let mut bj = BlackJack::new(uid, 0, pool.clone()).expect("Failed to create BlackJack Session");
-                bj.player_hit().expect("Player hit failed");
-                bj.player_stay().expect("Player Stay failed");
+                match bj.player_hit() {
+                    Ok(_) => bj.player_stay().expect("Player Failed to stay"),
+                    Err(DealerAlreadyWon) | Err(PlayerAlreadyWon) | Err(DealerAlreadyLost) | Err(PlayerAlreadyLost) => (),
+                    Err(e) => panic!(e)
+                }
             }
-
             BlackJack::restore(&pool, uid).expect("Restore failed").claim().ok();
+        })
+    }
+}
+
+#[cfg(not(feature = "auto_save"))]
+mod blackjack {
+    use test::Bencher;
+    use games_microservice::games::blackjack::BlackJack;
+
+    #[bench]
+    fn bench_mark(b: &mut Bencher) {
+        b.iter(move || {
+            let mut bj = BlackJack::new(100).expect("Failed to create blackjack session");
+            match bj.player_hit() {
+                Ok(_) => bj.player_stay().expect("Player failed to stay"),
+                Err(_) => ()
+            }
+            bj.claim().expect("Failed to make claim");
         })
     }
 }
 
 mod coin_toss {
     use test::Bencher;
-    use games_microservice::api::coin_toss::guess_side;
+    use games_microservice::games::coin_toss::guess_side;
 
     #[bench]
     fn bench_coin(bench: &mut Bencher) {
@@ -39,7 +61,7 @@ mod coin_toss {
 
 mod rps_game {
     use test::Bencher;
-    use games_microservice::api::rps::rps;
+    use games_microservice::games::rps::rps;
 
     #[bench]
     fn bench_rps(b: &mut Bencher) {
@@ -48,7 +70,7 @@ mod rps_game {
 }
 
 mod slot_machine {
-    use games_microservice::api::slot_machine::SlotMachine;
+    use games_microservice::games::slot_machine::SlotMachine;
     use test::Bencher;
 
     #[bench]

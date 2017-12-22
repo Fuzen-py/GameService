@@ -200,7 +200,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
 name = "games-microservice"
-version = "0.4.3"
+version = "0.5.0"
 dependencies = [
  "cfg-if 0.1.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "cute 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",

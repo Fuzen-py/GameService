@@ -1,4 +1,4 @@
-use api::coin_toss::{guess_side, CoinTossResponse};
+use games::coin_toss::{guess_side, CoinTossResponse};
 use rocket_contrib::Json;
 
 #[cfg_attr(feature = "cargo-clippy", allow(needless_pass_by_value))]

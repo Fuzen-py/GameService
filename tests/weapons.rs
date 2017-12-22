@@ -1,6 +1,6 @@
 extern crate games_microservice;
 
-use games_microservice::api::rps::Weapons;
+use games_microservice::games::rps::Weapons;
 
 #[test]
 fn test_comparision() {

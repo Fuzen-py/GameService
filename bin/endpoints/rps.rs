@@ -1,4 +1,4 @@
-use api::rps as rps_game;
+use games::rps as rps_game;
 use rocket_contrib::Json;
 
 use self::rps_game::Response;

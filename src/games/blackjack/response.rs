@@ -1,9 +1,10 @@
-use api::blackjack::{BlackJack, BlackJackError, GameState};
+use super::{BlackJack, BlackJackError, GameState};
+use super::blackjack_game::card_value;
 use std::error::Error;
 
 #[derive(Deserialize, Serialize)]
 pub struct Success {
-    pub player_id: u64,
+    #[cfg(feature = "auto_save")] pub player_id: u64,
     pub player_hand: Vec<String>,
     // Only first card is shown on first turn
     pub dealer_hand: Vec<String>,
@@ -26,12 +27,16 @@ pub struct Response {
 
 impl Response {
     pub fn success(bj: &BlackJack) -> Self {
+        #[cfg(feature = "auto_save")]
         let player_id = bj.player_id;
         let (player_score, player_hand) = bj.player.export();
 
         let (dealer_score, dealer_hand) = if bj.first_turn {
             let first_card = &bj.dealer.cards[0];
-            (u64::from(first_card.value), vec![first_card.to_string()])
+            (
+                u64::from(card_value(first_card)),
+                vec![first_card.to_string()],
+            )
         } else {
             bj.dealer.export()
         };
@@ -64,6 +69,7 @@ impl Response {
         Self {
             status_code: error.status_code(),
             status: Err(match *error {
+                #[cfg(feature = "auto_save")]
                 DieselResult(_) | R2d2(_) => "Internal Server Error",
                 CardParse(_) => "Error parsing cards",
                 _ => error.description(),
