@@ -16,44 +16,45 @@ cfg-if = "0.1.2"
 cute = "0.3.0"
 dotenv = "0.10.1"
 lazy_static = "1.0.0"
-log = "0.3.8"
-rand = "0.4.1"
-regex = "0.2.3"
-serde = "1.0.24"
-serde_derive = "1.0.24"
-serde_json = "1.0.8"
+log = "0.4.1"
+rand = "0.4.2"
+regex = "0.2.6"
+serde = "1.0.27"
+serde_derive = "1.0.27"
+serde_json = "1.0.9"
+games-microservice = { path = "." }
 
 [dependencies.diesel]
 features = ["postgres"]
 optional = true
-version = "0.99.0"
+version = "1.1.1"
 
 [dependencies.diesel_migrations]
 features = ["postgres"]
 optional = true
-version = "0.99.0"
+version = "1.1.0"
 
 [dependencies.r2d2]
 optional = true
-version = "0.8.1"
+version = "0.8.2"
 
 [dependencies.r2d2-diesel]
 optional = true
-version = "0.99.0"
+version = "1.0.0"
 
 [dependencies.rocket]
 optional = true
-version = "0.3.5"
+version = "0.3.6"
 
 [dependencies.rocket_codegen]
 optional = true
-version = "0.3.5"
+version = "0.3.6"
 
 [dependencies.rocket_contrib]
 default-features = false
 features = ["json"]
 optional = true
-version = "0.3.5"
+version = "0.3.6"
 
 [features]
 auto_save = [
