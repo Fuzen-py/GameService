@@ -9,6 +9,7 @@ pub enum Coin {
 }
 
 impl Coin {
+    /// Flips a coun, returning a Coin with its current Side up
     pub fn flip() -> Coin {
         let mut rng = thread_rng();
         if rng.gen_weighted_bool(WEIGHT) {
@@ -66,6 +67,8 @@ impl CoinTossResponse {
     }
 }
 
+
+/// Guess a coin side
 pub fn guess_side(bet: u64, side: &str) -> CoinTossResponse {
     let side_lowercase = side.to_lowercase();
 

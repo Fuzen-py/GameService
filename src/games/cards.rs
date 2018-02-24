@@ -4,7 +4,7 @@ use std::error::Error as StdError;
 use std::fmt::{Display, Formatter, Result as FmtResult};
 use std::str::FromStr;
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Copy)]
 pub enum StandardCardFace {
     Ace,
     Two,
@@ -45,7 +45,7 @@ impl Display for StandardCardFace {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Copy)]
 pub enum StandardCard {
     Hearts(StandardCardFace),
     Spades(StandardCardFace),
@@ -133,6 +133,37 @@ impl StdError for StandardCardParseError {
             NoCaptureGroup => "No regex capture group matched",
             NoSymbol => "No matching symbol found",
             ParseChar(ref inner) => inner.description(),
+        }
+    }
+}
+impl StandardCard {
+    pub fn get_inner(&self) -> &StandardCardFace {
+        use self::StandardCard::*;
+        match *self {
+            Hearts(ref inner) => inner,
+            Spades(ref inner) => inner,
+            Clubs(ref inner) => inner,
+            Diamonds(ref inner) => inner,
+        }
+    }
+}
+
+impl StandardCardFace {
+    /// Returns the numerical value of a Face by blackjack standards
+    /// Please note, Ace can be both 11 and 1 but is 11 in this instance
+    pub fn numeric_value(&self) -> u16 {
+        use self::StandardCardFace::*;
+        match *self {
+            Ace => 11,
+            Two => 2,
+            Three => 3,
+            Four => 4,
+            Five => 5,
+            Six => 6,
+            Seven => 7,
+            Eight => 8,
+            Nine => 9,
+            _ => 10
         }
     }
 }

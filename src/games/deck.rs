@@ -43,6 +43,7 @@ impl StandardDeck {
         }
     }
 
+    /// Exports a Vector if stringified Cards (Doesnt consume self)
     pub fn export(&self) -> Vec<String> {
         c![card.to_string(), for card in &self.cards]
     }

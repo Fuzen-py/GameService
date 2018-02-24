@@ -38,6 +38,7 @@ impl Weapons {
         }
     }
 
+    /// Returns a random Weapon
     pub fn rand_weapon() -> Self {
         // Although the type system designates that selecting an Nth char of a
         // string can result in None, as N is always 0 through 2 it won't be.
@@ -52,7 +53,6 @@ impl Weapons {
 }
 
 impl FromStr for Weapons {
-    // TODO: Use a proper error
     type Err = WeaponParseError;
 
     fn from_str(weapon: &str) -> Result<Self, Self::Err> {
@@ -80,6 +80,7 @@ impl PartialOrd for Weapons {
     }
 }
 
+// Makes creating the game much simpler
 impl Ord for Weapons {
     fn cmp(&self, other: &Self) -> Ordering {
         match *self {

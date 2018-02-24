@@ -1,6 +1,7 @@
 use super::{Response, Weapons};
 
-// Replace this with a response struct
+/// Quick RPS Game
+/// Weapons: rock/paper/scissors
 pub fn rps(bet: u64, weapon: &str) -> Response {
     let weapon = match weapon.parse::<Weapons>() {
         Ok(v) => v,

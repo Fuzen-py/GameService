@@ -81,15 +81,7 @@ pub fn establish_connection_pool() -> ConnectionPool {
     }.expect("Failed to create connection pool");
 
     // Run migrations
-    match pool.get() {
-        Ok(conn) => {
-            embedded_migrations::run(&*conn).expect("Error running migrations");
-        }
-        Err(why) => {
-            error!("Error obtaining conn to run migrations: {:?}", why);
-        }
-    }
-
+    run_migrations(pool.clone());
     #[cfg(test)]
     {
         use schema::blackjack::dsl::*;
@@ -100,4 +92,18 @@ pub fn establish_connection_pool() -> ConnectionPool {
     }
 
     pool
+}
+
+
+/// Run Migrations on a connection
+/// There may be colissions between your current DB, run with caution
+pub fn run_migrations(pool: ConnectionPool) {
+    match pool.get() {
+        Ok(conn) => {
+            embedded_migrations::run(&*conn).expect("Error running migrations");
+        }
+        Err(why) => {
+            error!("Error obtaining conn to run migrations: {:?}", why);
+        }
+    }
 }

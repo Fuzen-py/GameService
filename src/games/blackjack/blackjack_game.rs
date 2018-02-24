@@ -138,6 +138,7 @@ impl From<DeckError> for BlackJackError {
 }
 
 impl BlackJackError {
+    /// Return Status Code based on the error
     #[cfg_attr(feature = "cargo-clippy", allow(match_same_arms))]
     pub fn status_code(&self) -> u16 {
         use self::BlackJackError::*;

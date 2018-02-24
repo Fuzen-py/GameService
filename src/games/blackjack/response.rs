@@ -26,6 +26,7 @@ pub struct Response {
 }
 
 impl Response {
+    /// Success Response
     pub fn success(bj: &BlackJack) -> Self {
         #[cfg(feature = "auto_save")]
         let player_id = bj.player_id;
@@ -65,6 +66,7 @@ impl Response {
         }
     }
 
+    /// Response For Errors
     pub fn error(error: &BlackJackError) -> Self {
         use self::BlackJackError::*;
         Self {
