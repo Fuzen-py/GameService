@@ -19,14 +19,21 @@ mod blackjack {
             uid += 1;
 
             {
-                let mut bj = BlackJack::new(uid, 0, pool.clone()).expect("Failed to create BlackJack Session");
+                let mut bj = BlackJack::new(uid, 0, pool.clone())
+                    .expect("Failed to create BlackJack Session");
                 match bj.player_hit() {
                     Ok(_) => bj.player_stay().expect("Player Failed to stay"),
-                    Err(DealerAlreadyWon) | Err(PlayerAlreadyWon) | Err(DealerAlreadyLost) | Err(PlayerAlreadyLost) => (),
-                    Err(e) => panic!(e)
+                    Err(DealerAlreadyWon)
+                    | Err(PlayerAlreadyWon)
+                    | Err(DealerAlreadyLost)
+                    | Err(PlayerAlreadyLost) => (),
+                    Err(e) => panic!(e),
                 }
             }
-            BlackJack::restore(&pool, uid).expect("Restore failed").claim().ok();
+            BlackJack::restore(&pool, uid)
+                .expect("Restore failed")
+                .claim()
+                .ok();
         })
     }
 }
@@ -42,7 +49,7 @@ mod blackjack {
             let mut bj = BlackJack::new(100).expect("Failed to create blackjack session");
             match bj.player_hit() {
                 Ok(_) => bj.player_stay().expect("Player failed to stay"),
-                Err(_) => ()
+                Err(_) => (),
             }
             bj.claim().expect("Failed to make claim");
         })

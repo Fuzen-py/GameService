@@ -1,6 +1,4 @@
 use super::Card;
-use super::blackjack_game::{card_suit, card_value};
-
 
 /// Player Card hand
 #[derive(Clone, Debug, Default)]
@@ -26,10 +24,12 @@ impl Hand {
         let mut total = 0u64;
 
         for card in &self.cards {
-            if card_suit(card) == "Ace" {
+            let val = u64::from(*card);
+
+            if val == 11 {
                 ace_count += 1;
             } else {
-                total += u64::from(card_value(card));
+                total += val;
             }
         }
 

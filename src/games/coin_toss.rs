@@ -67,7 +67,6 @@ impl CoinTossResponse {
     }
 }
 
-
 /// Guess a coin side
 pub fn guess_side(bet: u64, side: &str) -> CoinTossResponse {
     let side_lowercase = side.to_lowercase();

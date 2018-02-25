@@ -10,7 +10,7 @@ use diesel;
 use r2d2::Error as R2d2Error;
 use std::error::Error as StdError;
 use std::fmt::{Display, Formatter, Result as FmtResult};
-use super::{Card, CardFace, CardParseError, Deck, DeckError, Hand};
+use super::{CardParseError, Deck, DeckError, Hand};
 #[cfg(feature = "auto_save")]
 use ConnectionPool;
 #[derive(Clone, Debug, Eq, Hash, PartialEq, PartialOrd, Ord)]
@@ -20,44 +20,13 @@ pub enum GameState {
     PlayerLost,
 }
 
-fn face_vale(face: &CardFace) -> u8 {
-    use self::CardFace::*;
-    #[cfg_attr(feature = "cargo-clippy", allow(match_same_arms))]
-    match *face {
-        Ace => 11_u8,
-        Two => 2_u8,
-        Three => 3_u8,
-        Four => 4_u8,
-        Five => 5_u8,
-        Six => 6_u8,
-        Seven => 7_u8,
-        Eight => 8_u8,
-        Nine => 9_u8,
-        Ten => 10_u8,
-        Jack => 10_u8,
-        Queen => 10_u8,
-        King => 10_u8,
-        _ => unreachable!(),
-    }
-}
-
-pub fn card_value(card: &Card) -> u8 {
-    use self::Card::*;
-
-    match *card {
-        Hearts(ref face) | Clubs(ref face) | Spades(ref face) | Diamonds(ref face) => {
-            face_vale(face)
-        }
-    }
-}
-
-pub fn card_suit(card: &Card) -> &'static str {
-    use self::Card::*;
-    match *card {
-        Hearts(_) => "Hearts",
-        Clubs(_) => "Clubs",
-        Spades(_) => "Spades",
-        Diamonds(_) => "Diamonds",
+impl Display for GameState {
+    fn fmt(&self, f: &mut Formatter) -> FmtResult {
+        f.write_str(match *self {
+            GameState::InProgress => "In Progress",
+            GameState::PlayerLost => "Dealer Won",
+            GameState::PlayerWon => "Player Won"
+        })
     }
 }
 
@@ -67,7 +36,8 @@ pub enum BlackJackError {
     DealerAlreadyLost,
     DealerAlreadyPressedStay,
     DealerAlreadyWon,
-    #[cfg(feature = "auto_save")] DieselResult(DieselResultError),
+    #[cfg(feature = "auto_save")]
+    DieselResult(DieselResultError),
     GameOver,
     InvalidResultCount(usize),
     NoCard,
@@ -75,7 +45,8 @@ pub enum BlackJackError {
     PlayerAlreadyPressedStay,
     PlayerAlreadyWon,
     PlayerNotDoneYet,
-    #[cfg(feature = "auto_save")] R2d2(R2d2Error),
+    #[cfg(feature = "auto_save")]
+    R2d2(R2d2Error),
     SessionAlreadyExists,
     GameStillInProgress,
     SessionDoesNotExist,
@@ -169,7 +140,8 @@ impl BlackJackError {
 #[derive(Clone)]
 pub struct BlackJack {
     pub player: Hand,
-    #[cfg(feature = "auto_save")] pub player_id: u64,
+    #[cfg(feature = "auto_save")]
+    pub player_id: u64,
     pub dealer: Hand,
     deck: Deck,
     pub bet: u64,
@@ -178,8 +150,10 @@ pub struct BlackJack {
     pub player_stay_status: bool,
     pub dealer_stay_status: bool,
     pub gain: i64,
-    #[cfg(feature = "auto_save")] db_pool: ConnectionPool,
-    #[cfg(feature = "auto_save")] claimed: bool,
+    #[cfg(feature = "auto_save")]
+    db_pool: ConnectionPool,
+    #[cfg(feature = "auto_save")]
+    claimed: bool,
 }
 
 impl BlackJack {
@@ -351,6 +325,7 @@ impl BlackJack {
     }
 
     fn dealer_hit(&mut self) -> Result<(), BlackJackError> {
+        self.first_turn = false;
         match self.status() {
             GameState::InProgress => if !self.dealer_stay_status {
                 Ok(self.dealer.add_card(self.deck.draw()?))
@@ -370,11 +345,11 @@ impl BlackJack {
         let player_score = self.player.score();
         let dealer_score = self.dealer.score();
 
-        if self.player.cards.len() == 5 {
+        if self.player.cards.len() == 5 && player_score <= 21 {
             return GameState::PlayerWon;
         }
 
-        if self.dealer.cards.len() == 5 {
+        if self.dealer.cards.len() == 5 && dealer_score <= 21 {
             return GameState::PlayerWon;
         }
 
@@ -421,7 +396,7 @@ impl BlackJack {
 
         self.first_turn = false;
 
-        while self.status() == GameState::InProgress && self.dealer.score() < 17 {
+        while self.status() == GameState::InProgress && self.dealer.score() <= 17 {
             self.dealer_hit()?; // No errors should happen here
         }
 

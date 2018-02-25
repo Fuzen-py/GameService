@@ -94,9 +94,9 @@ pub fn establish_connection_pool() -> ConnectionPool {
     pool
 }
 
-
 /// Run Migrations on a connection
 /// There may be colissions between your current DB, run with caution
+#[cfg(feature = "auto_save")]
 pub fn run_migrations(pool: ConnectionPool) {
     match pool.get() {
         Ok(conn) => {

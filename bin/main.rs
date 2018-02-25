@@ -17,7 +17,7 @@ extern crate serde_json;
 
 mod endpoints;
 
-use games_microservice::{games, establish_connection_pool, ConnectionPool};
+use games_microservice::{establish_connection_pool, games, ConnectionPool};
 use rocket::Rocket;
 
 #[cfg(feature = "web")]

@@ -3,7 +3,7 @@ use std::char::ParseCharError;
 use std::error::Error as StdError;
 use std::fmt::{Display, Formatter, Result as FmtResult};
 use std::str::FromStr;
-
+use std::convert::From;
 #[derive(Clone, Debug, Copy)]
 pub enum StandardCardFace {
     Ace,
@@ -137,23 +137,47 @@ impl StdError for StandardCardParseError {
     }
 }
 impl StandardCard {
-    pub fn get_inner(&self) -> &StandardCardFace {
+    pub fn face(&self) -> StandardCardFace {
+        self.clone().into()
+    }
+    pub fn suite_string(&self) -> String {
         use self::StandardCard::*;
-        match *self {
-            Hearts(ref inner) => inner,
-            Spades(ref inner) => inner,
-            Clubs(ref inner) => inner,
-            Diamonds(ref inner) => inner,
-        }
+        String::from(match self {
+            &Hearts(_) => "Hearts",
+            &Clubs(_) => "Clubs",
+            &Spades(_) => "Spades",
+            &Diamonds(_) => "Diamonds",
+        })
+    }
+    pub fn face_as_string(&self) -> String {
+        self.face().to_string()
     }
 }
 
 impl StandardCardFace {
     /// Returns the numerical value of a Face by blackjack standards
     /// Please note, Ace can be both 11 and 1 but is 11 in this instance
-    pub fn numeric_value(&self) -> u16 {
+    pub fn value(&self) -> u8 {
+        self.clone().into()
+    }
+}
+
+impl From<StandardCard> for StandardCardFace {
+    fn from(card: StandardCard) -> StandardCardFace {
+        use self::StandardCard::*;
+        match card {
+            Hearts(inner) => inner,
+            Spades(inner) => inner,
+            Clubs(inner) => inner,
+            Diamonds(inner) => inner,
+        }
+    }
+}
+
+impl From<StandardCardFace> for u8 {
+    fn from(face: StandardCardFace) -> u8 {
         use self::StandardCardFace::*;
-        match *self {
+        match face {
             Ace => 11,
             Two => 2,
             Three => 3,
@@ -163,7 +187,19 @@ impl StandardCardFace {
             Seven => 7,
             Eight => 8,
             Nine => 9,
-            _ => 10
+            _ => 10,
         }
+    }
+}
+
+impl From<StandardCard> for u8 {
+    fn from(card: StandardCard) -> u8 {
+        u8::from(StandardCardFace::from(card))
+    }
+}
+
+impl From<StandardCard> for u64 {
+    fn from(card: StandardCard) -> u64 {
+        u8::from(card) as u64
     }
 }

@@ -12,4 +12,4 @@ before_install:
 
 script:
   - cargo build --verbose
-  - cargo test --lib --verbose
+  - cargo test --no-default-features --verbose

@@ -10,6 +10,6 @@ pub use self::response::SessionCount;
 #[cfg(feature = "auto_save")]
 pub use models::BJSession as Session;
 pub use self::blackjack_game::BlackJackError;
-use super::StandardCardFace as CardFace;
+pub use super::StandardCardFace as CardFace;
 pub use super::{StandardCard as Card, StandardCardParseError as CardParseError,
                 StandardDeck as Deck, StandardDeckError as DeckError};

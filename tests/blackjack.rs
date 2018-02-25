@@ -4,13 +4,14 @@ use games_microservice::games::blackjack::*;
 
 #[test]
 fn test_blackjack_deck() {
-	let mut deck = Deck::new();
-	assert_eq!(deck.export().len(), 13*4);
-	match deck.draw() {
-		Ok(card) => {card.to_string();},
-		Err(e) => panic!(e.to_string())  
-	}
-
+    let mut deck = Deck::new();
+    assert_eq!(deck.export().len(), 13 * 4);
+    match deck.draw() {
+        Ok(card) => {
+            card.to_string();
+        }
+        Err(e) => panic!(e.to_string()),
+    }
 }
 
 //#[test]
@@ -30,6 +31,6 @@ fn test_blackjack_deck() {
 //				Err(e) => panic!(e.to_string())
 //			}
 //
-//		} 
+//		}
 //	}
 //}

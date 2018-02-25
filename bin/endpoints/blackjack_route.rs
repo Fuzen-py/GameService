@@ -10,7 +10,8 @@ fn active_sessions(db_pool: State<ConnectionPool>) -> Json<SessionCount> {
     use games_microservice::schema::blackjack::dsl::*;
 
     let conn = db_pool.get().unwrap();
-    let result = blackjack.filter(status.is_null())
+    let result = blackjack
+        .filter(status.is_null())
         .count()
         .get_result::<i64>(&*conn);
 
@@ -31,8 +32,7 @@ fn user_info(db_pool: State<ConnectionPool>, user: u64) -> Json<Response> {
 
 #[cfg_attr(feature = "cargo-clippy", allow(needless_pass_by_value))]
 #[post("/<user>/create/<bet>")]
-fn create_user(db_pool: State<ConnectionPool>, user: u64, bet: u64)
-    -> Json<Response> {
+fn create_user(db_pool: State<ConnectionPool>, user: u64, bet: u64) -> Json<Response> {
     Json(match BlackJack::new(user, bet, db_pool.clone()) {
         Ok(bj) => Response::success(&bj),
         Err(err) => Response::error(&err),
