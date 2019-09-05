@@ -1,4 +1,5 @@
 [![Build Status](https://travis-ci.org/Mikibot/GameService.svg?branch=master)](https://travis-ci.org/Mikibot/GameService)
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2FFuzen-py%2FGameService.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2FFuzen-py%2FGameService?ref=badge_shield)
 
 # NOTICE: The readme / API Examples are not up to date
 
@@ -37,3 +38,6 @@ And configure [rocket](https://rocket.rs/guide/configuration/)
 - [SlotMachine](API/SlotMachine.md)
 - [CoinToss](API/CoinToss.md)
 - [RPS](API/RPS.md)
+
+## License
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2FFuzen-py%2FGameService.svg?type=large)](https://app.fossa.io/projects/git%2Bgithub.com%2FFuzen-py%2FGameService?ref=badge_large)
